@@ -1,35 +1,32 @@
 import pandas as pd
-from datetime import datetime, timedelta
 from sklearn.ensemble import RandomForestClassifier
 
-df = pd.read_csv('D:/Rayal/Machine-Learning/new_dataset.csv')
+# Load data from CSV file
+data = pd.read_csv("D:/Rayal/Machine-Learning/new_dataset.csv")
 
-print(df[['Name', 'user_id']].drop_duplicates().reset_index(drop=True))
+# Convert dayOfQuestion column to corresponding numeric value
+data['dayOfQuestion'] = pd.to_datetime(data['dayOfQuestion']).dt.dayofweek
 
-emp_id = int(input("Select an employee by entering their ID: "))
+# Filter out rows with absent or holiday status
+data = data[data['status'].isin(['Late', 'Present'])]
 
-df = df[df['user_id'] == emp_id].reset_index(drop=True)
+# Define features and target
+X = data[['status', 'dayOfQuestion']]
+y = data['status']
 
-df = df[(df['status'] != 'Holiday') & (df['status'] != 'Absent')]
+# Train the model
+model = RandomForestClassifier()
+model.fit(X, y)
 
-day_map = {'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6}
+# Get the day of the week for tomorrow
+import datetime
+import calendar
+tomorrow = datetime.datetime.today() + datetime.timedelta(days=1)
+tomorrow_day_name = calendar.day_name[tomorrow.weekday()]
+tomorrow_day_num = list(calendar.day_name).index(tomorrow_day_name)
 
-df['day_num'] = df['dayOfQuestion'].apply(lambda x: day_map[x])
+# Predict the probability of being late tomorrow
+prob_late = model.predict_proba([[tomorrow_day_num, 'Present']])[:, 1][0] * 100
 
-df['late_flag'] = (df['status'] == 'Late')
-
-if sum(df['late_flag']) > 0:
-    X = df.loc[df['late_flag'], ['day_num']]
-    y = df.loc[df['late_flag'], 'late_flag']
-    rfc = RandomForestClassifier(n_estimators=10, random_state=42)
-    rfc.fit(X, y)
-
-    tomorrow = datetime.now() + timedelta(days=1)
-    tomorrow_day_of_week = tomorrow.strftime('%A')
-    tomorrow_day_num = day_map[tomorrow_day_of_week]
-    prob_late = rfc.predict_proba([[tomorrow_day_num]])[0][1] * 100
-
-
-    print(f"There is a {prob_late:.2f}% chance that the employee will be late tomorrow.")
-else:
-    print("No late records found for this employee.")
+# Output the result
+print(f"There is a {prob_late:.2f}% chance that the employee will be late tomorrow.")
