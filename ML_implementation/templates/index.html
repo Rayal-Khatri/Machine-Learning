@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Predict Employee Lateness</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+	<h1>Predict Employee Lateness</h1>
+	<form id="prediction-form">
+		<label for="user-id">Enter User ID:</label>
+		<input type="text" id="user-id" name="user_id">
+		<br>
+		<br>
+		<input type="submit" value="Submit">
+	</form>
+	<div id="prediction-result"></div>
+	<script>
+		$(document).ready(function() {
+			$('#prediction-form').submit(function(event) {
+				event.preventDefault();
+				$.ajax({
+					type: 'POST',
+					url: "{% url 'predict' %}",
+					data: {
+						'user_id': $('#user-id').val(),
+						'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+					},
+					success: function(response) {
+						$('#prediction-form')[0].reset();
+						$('#prediction-result').html('<h2>Prediction for ' + response.name + ' for ' + response.tomorrow + ': ' + response.prediction + '%</h2>');
+					}
+				});
+			});
+		});
+	</script>
+</body>
+</html>
