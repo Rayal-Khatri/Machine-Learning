@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 
 
-def predict_late_tomorrow(user_id):
+def get_prediction(user_id):
     # Load the dataset into a pandas dataframe
     df = pd.read_csv("D:/Rayal/Machine-Learning/ML_implementation/Ml_App/new_dataset.csv")
 
@@ -41,19 +41,9 @@ def predict_late_tomorrow(user_id):
     # Make a prediction for tomorrow's status
     prediction = regressor.predict(selected_employee_data[["day_numeric"]])
 
-    # Return the prediction
-    return prediction[0]*100
-
-import pandas as pd
-
-def get_employee_name(user_id):
-    # Load the dataset into a pandas dataframe
-    df = pd.read_csv("D:/Rayal/Machine-Learning/ML_implementation/Ml_App/new_dataset.csv")
-
-    # Filter the dataset to only include rows for the selected employee
-    selected_employee_data = df.loc[df["user_id"] == int(user_id)]
-
     # Get the name of the employee
     employee_name = selected_employee_data["Name"].unique()[0]
 
-    return employee_name
+    return prediction[0]*100,employee_name
+
+print(get_prediction(3))
